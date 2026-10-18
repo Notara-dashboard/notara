@@ -1,42 +1,44 @@
-# Persistent workspace — current build
+# Notara — current build
 
-The visual preview has been replaced by an invite-only Supabase application. Business tables start empty. Sample actions, property images, tenant records, meetings, communications and fabricated financial figures are not imported into the database. Old browser preview storage is discarded.
+The application is an invite-only Supabase property workspace. The invited owner is `notara@mjwgroup.co.za`. Business tables start empty; verification data is disposable and removed after tests.
 
 ## Implemented
 
-- Cookie-based Supabase sign-in, sign-out, invitation-only account creation, confirmation callback and password recovery.
-- Owner-scoped properties, premises, tenants, contacts, actions, leases, local calendar events, reporting requirements, turnover submissions, arrears snapshots and balances.
-- Server validation; composite owner foreign keys; RLS on every application table; append-only audit entries; record versions and edit conflict responses.
-- Create/edit/archive/restore, search, enum filters, sorting, paginated lists, CSV exports and cross-device preferences.
-- Lease overlap prevention, current occupancy and vacancies, active versus oversight portfolio scope.
-- Dated immutable financial snapshots, gross debit and credit separation, latest snapshot dashboard and financial history.
-- Expected versus received monthly reporting, missing versus zero, comparable prior-year returns.
-- Private document storage, limited content types and size, content checks and 60-second download URLs. Browser uploads use signed direct transfers to avoid hosting request-body limits.
-- Month calendar in SAST, dashboard widget layout and visibility, mobile navigation, dark/light theme, accessible Radix dialogs, audit-history screen.
+- Cookie-based sign-in, sign-out, invitation-only registration, confirmation callback and password recovery.
+- Owner-scoped properties, premises, tenants, contacts, actions, leases, local calendar events, meetings, communications, reporting requirements, turnover submissions, financial snapshots and balances.
+- Create/edit/archive/restore, search, filters, sorting, pagination, CSV exports, dashboard customisation and cross-device preferences.
+- Server validation, composite owner foreign keys, RLS, append-only audit history, record versions and edit-conflict protection.
+- Lease overlap prevention, current occupancy/vacancies, active/oversight scope, gross debit and credit separation, immutable dated financial snapshots and turnover comparisons.
+- CSV debtor imports: column mapping, currency/credit parsing, explicit tenant review, source-scoped identity matching, saved staging, atomic finalisation and duplicate-file idempotency. Limits: 2 MB and 2,000 rows per file.
+- Meeting notes, participants, consent status, decisions and linked follow-up actions. Manual communication logs with tenant/property links.
+- Private signed document uploads/downloads, metadata and property/tenant/lease/meeting links, archive/restore, retained file versions and optimistic replacement conflicts. Up to 20 MB per file; PDF, JPEG, PNG, plain text and CSV.
+- Portable ZIP backups containing a consistent database snapshot, current/historical file bytes and SHA-256 hashes. Transactional restore into an empty workspace, owner rebinding and file-integrity checks. Limits: 100 MB of files, 3 MB of metadata, 10,000 records per collection and 2,000 files. Original audit entries are included for reference; restore creates fresh audit events.
+- SAST calendar, mobile navigation, dark/light theme, accessible dialogs and audit-history UI.
 
-## Verification evidence
+## Verification
 
-See `VERIFICATION.md` for the completed checks and their limits. `tests/security.sql` runs in a rollback-only transaction and verifies security and financial invariants. `tests/runtime-smoke.mjs` requires a dedicated disposable account, performs real API/storage checks and must be followed by owner-scoped cleanup. Never run integration checks against a real owner's account.
+Production build, TypeScript and 17 automated tests pass. The rollback-only security and workflow SQL suites pass. Real HTTP/storage verification passes 48 core checks, 24 new workflow checks and 16 restore checks. Recovery includes actual file downloads and byte-hash comparison. The browser also downloads a valid workspace ZIP. See `VERIFICATION.md` for details and limits.
 
-## Remaining requirements for the full platform
+## External integrations deferred by the user
 
-These requirements remain open; the core build does not prove full platform completion.
+Google and AI accounts remain disconnected. No provider authorisation or real model request has been performed. The current screens report this honestly. Full Google OAuth/token handling, durable Calendar/Gmail/Drive sync, model retrieval/citations/proposal approval and long-recording transcription are still implementation work; linking an account alone will not enable those unfinished features. Manual calendar, meeting notes, communications, documents and financial workflows work independently.
 
-1. Finish and verify Google Calendar, Gmail and Drive OAuth, encrypted token retention, durable sync, reconnection and provider failure handling. No provider OAuth client credentials are available in the app.
-2. Implement consent-aware meeting recording/upload, durable long-recording transcription, source segments and deletion/retention behavior. No transcription provider is configured.
-3. Implement grounded AI retrieval, model calls, exact source references, proposal approval, provider errors and usage controls. No model provider is configured.
-4. Complete staged debtor imports, import identity mapping, human review, atomic application, source hashes and duplicate-import checks. Unique tenant external IDs are implemented, but a full import pipeline is not.
-5. Complete document versioning, typed attachment relationships, malware scanning/quarantine and recovery/retention requirements.
-6. Verify the real owner's confirmation/recovery email delivery and configure redirect allowlists for the intended deployed origin. The connected Notara email is provisioned as the invited owner; no password is generated for that owner.
-7. Provision preview/production environment isolation, backups and object backups, perform a documented restore exercise, deploy and verify HTTPS/callbacks, then connect `notara.co.za` after confirming domain control.
-8. Complete keyboard, screen-reader, contrast and browser/device coverage beyond the representative browser checks already performed.
+## Production launch gates
 
-## Operational observations
+- Verify the real owner's confirmation/recovery email delivery and the intended deployment callback allowlist. The owner chooses their own password; no default password is created.
+- Establish independent production configuration and database isolation, scheduled off-site backups/retention and malware scanning/quarantine. ZIP recovery is implemented and exercised; it is not an automatic managed backup service.
+- Complete the deferred provider implementations and test them after account authorisation.
+- Verify intended-domain ownership/DNS and the final production HTTPS deployment. The current Vercel deployment is an authenticated preview.
+- Extend accessibility, keyboard, screen-reader and browser/device coverage beyond the representative checks recorded here.
 
-- Supabase project: `nfhdvkinuywydpyoizyo`, Notara-dashboard, Postgres 17, Free plan.
-- Only publishable credentials are used by this application. No service-role key or database password is required or committed.
-- The connected Vercel account/team currently has no Notara project.
-- Local Git credentials belong to a different account and cannot push to this repository. Use the authenticated Notara GitHub connector to publish changes; do not replace the user's global Git credentials.
-- Supabase's advisor reports that leaked-password protection is disabled. Enabling that account setting requires the appropriate Supabase Auth plan/settings access.
+## Connected infrastructure
 
-The historical `FOUNDATION.md`, `DATABASE-ARCHITECTURE.md` and `PERSISTENT-DATA-MILESTONE.md` describe the original design and intended acceptance gates; they are not claims that every later integration has shipped.
+Supabase: `nfhdvkinuywydpyoizyo`, Notara-dashboard, Postgres 17, Free plan. Only publishable credentials are used. No service-role key or database password is committed.
+
+Vercel: project `notara` (`prj_lzjhwi87pfZy1kmE5fa5baqXiTaT`) under `mjwdashboard`. Preview is protected by Vercel Authentication. Production environment variables and custom-domain routing are not provisioned.
+
+GitHub: draft PR #1 on `codex/persistent-workspace`. Local Git credentials belong to a different account; publication uses the connected Notara account without replacing global credentials.
+
+Supabase's security advisor reports leaked-password protection disabled; no RLS or exposed-function security warnings. Remediation: https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
+
+The historical architecture/design documents describe intended acceptance gates, not a claim that every integration is finished.

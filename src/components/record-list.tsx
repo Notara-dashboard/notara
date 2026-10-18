@@ -26,7 +26,7 @@ export async function api(url: string, options?: RequestInit) {
   }
   return body;
 }
-function RelationField({
+export function RelationField({
   field,
   value,
   onChange,

@@ -1,3 +1,4 @@
+import { validFile, safeFilename } from "@/lib/uploads";
 import { sameOrigin } from "@/lib/request-security";
 import { authenticatedClient } from "@/lib/supabase/server";
 export async function GET(request: Request) {
@@ -5,14 +6,30 @@ export async function GET(request: Request) {
   if (!auth)
     return Response.json({ error: "Please sign in again." }, { status: 401 });
   const id = new URL(request.url).searchParams.get("id");
-  if (id) {
+  const url = new URL(request.url);
+  if (id && url.searchParams.get("history") === "1") {
     const { data, error } = await auth.client
-      .from("documents")
+      .from("document_versions")
+      .select("id,revision,name,content_type,size_bytes,created_at")
+      .eq("owner_id", auth.user.id)
+      .eq("document_id", id)
+      .order("revision", { ascending: false });
+    return error
+      ? Response.json({ error: "Version history unavailable" }, { status: 400 })
+      : Response.json(
+          { data },
+          { headers: { "Cache-Control": "private, no-store" } },
+        );
+  }
+  if (id) {
+    const revision = url.searchParams.get("revision") === "1";
+    let lookup = auth.client
+      .from(revision ? "document_versions" : "documents")
       .select("object_path,name")
       .eq("owner_id", auth.user.id)
-      .eq("id", id)
-      .is("archived_at", null)
-      .maybeSingle();
+      .eq("id", id);
+    if (!revision) lookup = lookup.is("archived_at", null);
+    const { data, error } = await lookup.maybeSingle();
     if (error || !data)
       return Response.json({ error: "Document not found" }, { status: 404 });
     const { data: link, error: linkError } = await auth.client.storage
@@ -29,15 +46,19 @@ export async function GET(request: Request) {
     0,
     Number(new URL(request.url).searchParams.get("page")) || 0,
   );
-  const { data, error, count } = await auth.client
+  let query = auth.client
     .from("documents")
-    .select("id,name,size_bytes,content_type,created_at,version", {
+    .select("*", {
       count: "exact",
     })
     .eq("owner_id", auth.user.id)
-    .is("archived_at", null)
     .order("created_at", { ascending: false })
     .range(page * 50, page * 50 + 49);
+  query =
+    url.searchParams.get("archived") === "1"
+      ? query.not("archived_at", "is", null)
+      : query.is("archived_at", null);
+  const { data, error, count } = await query;
   return error
     ? Response.json({ error: "Documents unavailable" }, { status: 500 })
     : Response.json(
@@ -62,23 +83,7 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   const bytes = new Uint8Array(await file.arrayBuffer());
-  const header = new TextDecoder().decode(bytes.slice(0, 8));
-  const types = [
-    "application/pdf",
-    "image/jpeg",
-    "image/png",
-    "text/plain",
-    "text/csv",
-  ];
-  const valid =
-    types.includes(file.type) &&
-    (file.type === "application/pdf"
-      ? header.startsWith("%PDF-")
-      : file.type === "image/jpeg"
-        ? bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255
-        : file.type === "image/png"
-          ? bytes[0] === 137 && header.slice(1, 4) === "PNG"
-          : !bytes.includes(0));
+  const valid = validFile(bytes, file.type);
   if (!valid)
     return Response.json(
       {
@@ -87,8 +92,7 @@ export async function POST(request: Request) {
       },
       { status: 400 },
     );
-  const name =
-    file.name.replace(/[\x00-\x1f/\\]/g, "_").slice(0, 200) || "document";
+  const name = safeFilename(file.name);
   const path = `${auth.user.id}/${crypto.randomUUID()}/${name}`;
   const { error } = await auth.client.storage
     .from("notara-private")

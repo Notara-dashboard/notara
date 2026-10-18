@@ -94,6 +94,8 @@ export const definitions: Record<string, Definition> = {
       relation("property_id", "Property", "properties"),
       relation("tenant_id", "Tenant", "tenants"),
       date("due_date", "Due date", false),
+      relation("meeting_id", "Source meeting", "meetings"),
+      relation("communication_id", "Source communication", "communications"),
       {
         key: "priority",
         label: "Priority",
@@ -214,6 +216,54 @@ export const definitions: Record<string, Definition> = {
       notes,
     ],
   },
+  meetings: {
+    label: "Meetings",
+    singular: "meeting",
+    fields: [
+      name,
+      relation("property_id", "Property", "properties"),
+      {
+        key: "starts_at",
+        label: "Meeting time (SAST)",
+        type: "datetime-local",
+        required: true,
+      },
+      { key: "participants", label: "Participants" },
+      {
+        key: "consent",
+        label: "Recording consent",
+        type: "select",
+        options: ["not_recording", "consent_recorded"],
+        required: true,
+      },
+      notes,
+      { key: "decisions", label: "Decisions", type: "textarea" },
+    ],
+  },
+  communications: {
+    label: "Communications",
+    singular: "communication",
+    fields: [
+      name,
+      relation("property_id", "Property", "properties"),
+      relation("tenant_id", "Tenant", "tenants"),
+      {
+        key: "channel",
+        label: "Channel",
+        type: "select",
+        options: ["Note", "Phone", "Email", "WhatsApp", "Letter"],
+        required: true,
+      },
+      { key: "contact", label: "Contact" },
+      {
+        key: "occurred_at",
+        label: "Date and time (SAST)",
+        type: "datetime-local",
+        required: true,
+      },
+      notes,
+    ],
+  },
 };
 export type RecordRow = {
   id: string;
@@ -240,6 +290,7 @@ export function recordSchema(table: string) {
         .finite()
         .min(field.min ?? -999999999999)
         .max(999999999999)
+        .multipleOf(0.01)
         .nullable();
     else if (field.options)
       schema = z.enum(field.options as [string, ...string[]]);
@@ -253,11 +304,20 @@ export function recordSchema(table: string) {
       schema = z
         .string()
         .trim()
-        .max(field.key === "notes" ? 5000 : field.key === "name" ? 160 : 500);
+        .max(
+          field.type === "textarea" ? 5000 : field.key === "name" ? 160 : 500,
+        );
     if (field.required)
       schema = schema.refine(
         (v) => v !== null && v !== "",
         "This field is required",
+      );
+    else
+      schema = schema.default(
+        field.relation ||
+          ["date", "datetime-local", "number"].includes(field.type || "")
+          ? null
+          : field.options?.[0] || "",
       );
     shape[field.key] = schema;
   }

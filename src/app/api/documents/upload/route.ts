@@ -27,6 +27,8 @@ export async function POST(request: Request) {
         .object({
           action: z.enum(["complete", "cleanup"]),
           path: z.string().max(500),
+          document_id: z.uuid().optional(),
+          version: z.number().int().positive().optional(),
         })
         .strict(),
     ])
@@ -88,20 +90,47 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
-  const { error: saveError } = await auth.client.from("documents").insert({
-    owner_id: auth.user.id,
+  const values = {
     name: parts[2],
     object_path: data.path,
     content_type: file.type,
     size_bytes: file.size,
-  });
-  if (saveError && saveError.code !== "23505")
-    return Response.json(
-      {
-        error:
-          "Document metadata could not be saved. Retry to finish this upload.",
-      },
-      { status: 500 },
-    );
+  };
+  if (data.document_id) {
+    if (!data.version)
+      return Response.json(
+        { error: "Document version required." },
+        { status: 400 },
+      );
+    const { data: updated, error } = await auth.client
+      .from("documents")
+      .update(values)
+      .eq("owner_id", auth.user.id)
+      .eq("id", data.document_id)
+      .eq("version", data.version)
+      .select("id")
+      .maybeSingle();
+    if (error)
+      return Response.json(
+        { error: "New version could not be saved." },
+        { status: 400 },
+      );
+    if (!updated)
+      return Response.json(
+        {
+          error: "Document changed. Refresh before uploading another version.",
+        },
+        { status: 409 },
+      );
+  } else {
+    const { error } = await auth.client
+      .from("documents")
+      .insert({ ...values, owner_id: auth.user.id });
+    if (error && error.code !== "23505")
+      return Response.json(
+        { error: "Document could not be saved. Retry to finish the upload." },
+        { status: 500 },
+      );
+  }
   return Response.json({ ok: true });
 }

@@ -8,6 +8,8 @@ import { Documents } from "./documents";
 import { PortfolioInsights } from "./portfolio-insights";
 import { AuditHistory } from "./audit-history";
 import { Calendar } from "./calendar";
+import { Imports } from "./imports";
+import { BackupControls } from "./backup";
 const collections: Partial<Record<ModuleId, string[]>> = {
   properties: ["properties", "premises"],
   tenants: ["tenants", "contacts"],
@@ -16,6 +18,8 @@ const collections: Partial<Record<ModuleId, string[]>> = {
   leases: ["leases"],
   financials: ["arrears_snapshots", "arrears_balances"],
   turnover: ["turnover_requirements", "turnover_submissions"],
+  meetings: ["meetings"],
+  communications: ["communications"],
 };
 export function ModulePage({ moduleId }: { moduleId: ModuleId }) {
   const [revision, setRevision] = useState(0);
@@ -40,6 +44,25 @@ export function ModulePage({ moduleId }: { moduleId: ModuleId }) {
         />
       )}
       {moduleId === "calendar" && <Calendar revision={revision} />}
+      {moduleId === "financials" && (
+        <Imports onChanged={() => setRevision((v) => v + 1)} />
+      )}
+      {moduleId === "meetings" && (
+        <section className="panel live-panel">
+          <h2>From conversation to action</h2>
+          <p>
+            Keep participants, notes and decisions here. Link follow-up actions
+            to the meeting from Master Actions. Recording and transcription can
+            be activated when you connect an AI provider.
+          </p>
+        </section>
+      )}
+      {moduleId === "communications" && (
+        <p className="muted-note">
+          Log calls, messages and correspondence now. Google email sync can be
+          connected later.
+        </p>
+      )}
       {collections[moduleId] ? (
         <CollectionTabs
           key={moduleId}
@@ -152,10 +175,11 @@ function Settings() {
           and audit history are enabled.
         </p>
         <p className="muted-note">
-          Database and object backup restoration must be verified before
-          production launch. This project currently uses the Supabase Free plan.
+          Download a workspace backup below to keep records and file versions
+          together. This project currently uses the Supabase Free plan.
         </p>
       </section>
+      <BackupControls />
       <AuditHistory />
     </>
   );

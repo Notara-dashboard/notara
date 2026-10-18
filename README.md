@@ -36,4 +36,5 @@ npm start
 - [Architecture requirements](docs/DATABASE-ARCHITECTURE.md)
 - [Persistent-data acceptance gates](docs/PERSISTENT-DATA-MILESTONE.md)
 
-Google sync, mail ingestion, meeting transcription, grounded AI, staged imports, backup restoration and production hosting remain open requirements. Their screens report the connection state accurately.
+Staged CSV imports, document version history, meeting notes, communication logs and ZIP backup recovery are implemented and verified. Google sync, mail ingestion, transcription and grounded AI remain deferred and require further implementation before account linking can activate them. The current hosted deployment is a protected preview; production launch gates are recorded in BUILD-STATUS.md.
+
