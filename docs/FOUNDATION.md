@@ -1,14 +1,6 @@
-# NOTARA — visual foundation
+# Visual design reference
 
-17 October 2026 · First deliverable
-
-**Your day. Your properties. Your intelligence.**
-
-## Delivery boundary
-
-This milestone delivers the responsive application shell, desktop and mobile dashboards, all 13 module routes, reusable interface components and an initial architecture proposal. The application uses explicitly labelled fictional sample data. It does not provide private authentication, a database, live AI, OAuth, uploads or production hosting yet. Browser-local sample actions and preferences demonstrate interactions; they are not the persistent-data milestone.
-
-The supplied brand board guides the folded N mark, midnight palette and indigo/blue accents. The written brief controls functionality and the dark-first direction. All logos and architectural illustrations in this repository are original SVG assets. The full brand board is not redistributed.
+This historical design reference is superseded by BUILD-STATUS.md for implementation status. Sample business records and illustrations have been removed from the application.
 
 ## Visual system
 
@@ -66,10 +58,6 @@ Global access includes a searchable command palette (Ctrl K / Command K), notifi
 
 Integration setup controls explain exact prerequisites. They do not simulate OAuth or reconnect. AI prompts remain local and return an explicit disconnected state. The daily brief is hand-authored from three linked sample sources.
 
-## Sample reconciliation
-
-Three active properties contain 54 premises, of which 50 are occupied (92.6%). Four premises are vacant. Sandton Exchange is oversight-only and contributes no dashboard totals. Gross debit is R 66,250: R 32,500 + R 18,750 + R 15,000. A separate R 4,500 credit is never netted into this KPI. September debit is R 74,500, so the October reduction is R 8,250 / 11.1%. Three sample leases expire within 60 days. September has three expected turnover reporters, two received and one outstanding. The five-tenant directory is a subset, not a full list of all occupied premises.
-
 ## Architecture boundaries
 
 Next.js App Router owns server route composition. Client components own only the sample interaction layer. TypeScript models and fixtures are in `src/lib/data.ts`; reusable UI primitives are in `src/components/ui`. The chart is loaded on demand. Shared record, badge, avatar, export, action-row and card components make the visual system reusable. No provider keys, service-role tokens or OAuth secrets are required or included.
@@ -77,3 +65,4 @@ Next.js App Router owns server route composition. Client components own only the
 In milestone two, replace fixture reads with authenticated server data access. Move domain schemas into dedicated modules and validate mutations on the server. Browser storage is to retain harmless interface preferences only, never tenant records or financial documents. The proposed server boundaries are `server/auth`, `server/repositories`, `server/services`, `server/integrations`, `server/jobs`, and `server/ai`, each with server-only imports.
 
 The initial site remains a local preview because private authentication is a mandatory launch gate. The requested production target remains Vercel at `notara.co.za`; no alternate hosting project or domain changes are made in this milestone.
+

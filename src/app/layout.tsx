@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
 import "./globals.css";
-import { Workspace } from "@/components/workspace";
 export const metadata: Metadata = {
   title: "Notara · Your world. Organised.",
-  description:
-    "Your day. Your properties. Your intelligence. Notara visual foundation preview with labelled sample data.",
+  description: "Your private property and executive workspace.",
   robots: { index: false, follow: false },
 };
 export default function RootLayout({
@@ -19,7 +17,7 @@ export default function RootLayout({
         <a href="#main-content" className="skip-link">
           Skip to workspace
         </a>
-        <Workspace>{children}</Workspace>
+        {children}
       </body>
     </html>
   );

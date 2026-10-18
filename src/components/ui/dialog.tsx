@@ -28,7 +28,7 @@ export function Dialog({
             <div>
               <DialogPrimitive.Title>{title}</DialogPrimitive.Title>
               <DialogPrimitive.Description>
-                {description || "Notara design preview · Sample data only"}
+                {description || "Your private Notara workspace"}
               </DialogPrimitive.Description>
             </div>
             <DialogPrimitive.Close
