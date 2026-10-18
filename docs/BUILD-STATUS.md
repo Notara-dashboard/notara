@@ -26,19 +26,24 @@ Google and AI accounts remain disconnected. No provider authorisation or real mo
 ## Production launch gates
 
 - Verify the real owner's confirmation/recovery email delivery and the intended deployment callback allowlist. The owner chooses their own password; no default password is created.
-- Establish independent production configuration and database isolation, scheduled off-site backups/retention and malware scanning/quarantine. ZIP recovery is implemented and exercised; it is not an automatic managed backup service.
+- Establish independent staging database isolation, scheduled off-site backups/retention and malware scanning/quarantine. ZIP recovery is implemented and exercised; it is not an automatic managed backup service.
 - Complete the deferred provider implementations and test them after account authorisation.
-- Verify intended-domain ownership/DNS and the final production HTTPS deployment. The current Vercel deployment is an authenticated preview.
+- Verify intended-domain ownership/DNS and the final production HTTPS deployment. The Vercel release remains protected by Vercel Authentication.
 - Extend accessibility, keyboard, screen-reader and browser/device coverage beyond the representative checks recorded here.
 
 ## Connected infrastructure
 
 Supabase: `nfhdvkinuywydpyoizyo`, Notara-dashboard, Postgres 17, Free plan. Only publishable credentials are used. No service-role key or database password is committed.
 
-Vercel: project `notara` (`prj_lzjhwi87pfZy1kmE5fa5baqXiTaT`) under `mjwdashboard`. Preview is protected by Vercel Authentication. Production environment variables and custom-domain routing are not provisioned.
+Vercel: project `notara` (`prj_lzjhwi87pfZy1kmE5fa5baqXiTaT`) under `mjwdashboard`. Preview and production releases are protected by Vercel Authentication. Production uses the connected Supabase project with publishable credentials. Custom-domain routing is not provisioned.
 
-GitHub: draft PR #1 on `codex/persistent-workspace`. Local Git credentials belong to a different account; publication uses the connected Notara account without replacing global credentials.
+GitHub: PR #1 contains the workspace release for merging into `main`. Local Git credentials belong to a different account; publication uses the connected Notara account without replacing global credentials.
 
 Supabase's security advisor reports leaked-password protection disabled; no RLS or exposed-function security warnings. Remediation: https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
 
 The historical architecture/design documents describe intended acceptance gates, not a claim that every integration is finished.
+
+## Release synchronisation
+
+All nine Supabase migrations are applied remotely. Repository filenames match the recorded remote versions so future migration pushes do not replay already-applied DDL. The Vercel release is built from the merged GitHub main commit. Google and AI account connections remain deferred.
+
