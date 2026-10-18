@@ -1014,6 +1014,7 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      account_setup_required: { Args: never; Returns: boolean };
       apply_arrears_import: {
         Args: { batch_id: string; expected_version: number };
         Returns: string;
