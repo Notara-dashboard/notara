@@ -2,7 +2,8 @@
 -- Creates no persistent users, records or audit history.
 begin;
 insert into private.allowed_accounts(email) values('security-owner@notara.invalid'),('security-other@notara.invalid');
-insert into auth.users(id,email,email_confirmed_at) values(gen_random_uuid(),'security-owner@notara.invalid',now()),(gen_random_uuid(),'security-other@notara.invalid',now());
+insert into auth.users(id,email,email_confirmed_at,encrypted_password) values(gen_random_uuid(),'security-owner@notara.invalid',now(),'test-only-hash'),(gen_random_uuid(),'security-other@notara.invalid',now(),'test-only-hash');
+update private.account_password_setup set completed_at=now() where owner_id in(select id from auth.users where email in('security-owner@notara.invalid','security-other@notara.invalid'));
 select set_config('test.owner',(select id::text from auth.users where email='security-owner@notara.invalid'),true);
 select set_config('test.other',(select id::text from auth.users where email='security-other@notara.invalid'),true);
 select set_config('request.jwt.claims',jsonb_build_object('sub',current_setting('test.owner'),'role','authenticated')::text,true);
@@ -73,3 +74,5 @@ end $$;
 reset role;
 rollback;
 select 'PASS: owner CRUD, audit integrity, stale versions, external identity, lease overlap, debit/credit, immutable snapshots, active portfolio, RLS isolation, anonymous denial; all fixtures rolled back' as result;
+
+

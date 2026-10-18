@@ -8,6 +8,10 @@ export async function ProtectedWorkspace({
 }) {
   const auth = await authenticatedClient();
   if (!auth) redirect("/login");
+  const setup = await auth.client.rpc("account_setup_required");
+  if (setup.error)
+    throw new Error("Account setup could not be checked. Please retry.");
+  if (setup.data === true) redirect("/login?setup=1");
   const { data, error } = await auth.client.rpc("workspace_access");
   if (error)
     throw new Error("Workspace access could not be checked. Please retry.");

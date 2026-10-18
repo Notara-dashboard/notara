@@ -1,6 +1,7 @@
 begin;
 insert into private.allowed_accounts(email) values('workflow-owner@notara.invalid');
-insert into auth.users(id,email,email_confirmed_at) values(gen_random_uuid(),'workflow-owner@notara.invalid',now());
+insert into auth.users(id,email,email_confirmed_at,encrypted_password) values(gen_random_uuid(),'workflow-owner@notara.invalid',now(),'test-only-hash');
+update private.account_password_setup set completed_at=now() where owner_id=(select id from auth.users where email='workflow-owner@notara.invalid');
 select set_config('test.owner',(select id::text from auth.users where email='workflow-owner@notara.invalid'),true);
 select set_config('request.jwt.claims',jsonb_build_object('sub',current_setting('test.owner'),'role','authenticated')::text,true);
 set local role authenticated;
@@ -51,4 +52,6 @@ end $$;
 reset role;
 rollback;
 select 'workflow_import_history_restore_passed' as result;
+
+
 

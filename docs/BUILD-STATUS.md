@@ -4,7 +4,7 @@ The application is an invite-only Supabase property workspace. The invited owner
 
 ## Implemented
 
-- Cookie-based sign-in, sign-out, invitation-only registration, confirmation callback and password recovery.
+- Cookie-based sign-in, sign-out, email-verified first access, mandatory owner-chosen password setup, confirmation callback and password recovery.
 - Owner-scoped properties, premises, tenants, contacts, actions, leases, local calendar events, meetings, communications, reporting requirements, turnover submissions, financial snapshots and balances.
 - Create/edit/archive/restore, search, filters, sorting, pagination, CSV exports, dashboard customisation and cross-device preferences.
 - Server validation, composite owner foreign keys, RLS, append-only audit history, record versions and edit-conflict protection.
@@ -17,7 +17,7 @@ The application is an invite-only Supabase property workspace. The invited owner
 
 ## Verification
 
-Production build, TypeScript and 17 automated tests pass. The rollback-only security and workflow SQL suites pass. Real HTTP/storage verification passes 48 core checks, 24 new workflow checks and 16 restore checks. Recovery includes actual file downloads and byte-hash comparison. The browser also downloads a valid workspace ZIP. See `VERIFICATION.md` for details and limits.
+Production build, TypeScript and 19 automated tests pass. The rollback-only security and workflow SQL suites pass. Real HTTP/storage verification passes 48 core checks, 24 new workflow checks and 16 restore checks. Recovery includes actual file downloads and byte-hash comparison. The browser also downloads a valid workspace ZIP. See `VERIFICATION.md` for details and limits.
 
 ## External integrations deferred by the user
 
@@ -45,5 +45,10 @@ The historical architecture/design documents describe intended acceptance gates,
 
 ## Release synchronisation
 
-All nine Supabase migrations are applied remotely. Repository filenames match the recorded remote versions so future migration pushes do not replay already-applied DDL. The Vercel release is built from the merged GitHub main commit. Google and AI account connections remain deferred.
+All eleven Supabase migrations are applied remotely. Repository filenames match the recorded remote versions so future migration pushes do not replay already-applied DDL. The Vercel release is built from the merged GitHub main commit. Google and AI account connections remain deferred.
+
+
+## First-login correction
+
+The owner starts with an emailed one-time sign-in link, verifies their address, then chooses and confirms a password before accessing workspace data. A private database marker records a real password change after email confirmation; Supabase-generated temporary passwords do not satisfy this requirement. Subsequent visits support normal password sign-in and email recovery. Empty or non-JSON authentication failures produce a helpful message rather than a parsing error. Supabase Site URL and callback allowlist now point to the production deployment. The screenshot URL notara-coral.vercel.app is outside the connected Vercel project's deployment aliases and returned HTTP 500; use https://notara-mjwdashboard.vercel.app/login.
 

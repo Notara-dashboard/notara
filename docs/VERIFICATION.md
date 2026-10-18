@@ -37,3 +37,8 @@ Cleanup completed: all 19 application tables contain zero rows. Auth users, iden
 - Import failures for archived mapped tenants now roll back the whole snapshot. Legacy multipart uploads use the same full file-signature validation as direct signed uploads.
 - ZIP backup integrity validates manifest object hashes, document metadata and owner paths. Historical audit events are reference material; canonical audit history records the restoration as fresh inserts/updates.
 - The backup UI supports 100 MB of files and 3 MB of metadata. This bounded self-service recovery does not establish scheduled operational backups or disaster recovery of the Supabase project itself.
+
+## First-login verification — 18 October 2026
+
+Nineteen automated tests, three rollback-only SQL suites and 23 live first-login HTTP checks pass. The new checks cover a verified email session, generated temporary password handling, mandatory password setup, denial of data access before completion, a real password update through Supabase Auth, later password sign-in, sign-out and one-time link replay rejection. The disposable Auth fixture is removed after testing. Production email receipt and password entry belong to the owner; their password is never created by the agent.
+

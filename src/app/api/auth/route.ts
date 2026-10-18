@@ -1,73 +1,160 @@
 import { sameOrigin, publicOrigin } from "@/lib/request-security";
 import { createClient } from "@/lib/supabase/server";
+import { invitedOwnerEmail } from "@/lib/auth-flow";
 import { z } from "zod";
+const json = (data: unknown, status = 200) =>
+  Response.json(data, {
+    status,
+    headers: { "Cache-Control": "private, no-store" },
+  });
+const unavailable = () =>
+  json(
+    {
+      error:
+        "Sign-in is not available on this deployment. Please use https://notara-mjwdashboard.vercel.app/login or try again shortly.",
+    },
+    503,
+  );
+export async function GET() {
+  try {
+    const client = await createClient();
+    const {
+      data: { user },
+    } = await client.auth.getUser();
+    if (!user) return json({ signedIn: false });
+    const { data, error } = await client.rpc("account_setup_required");
+    if (error) return unavailable();
+    if (data === null)
+      return json({ error: "This account has not been invited." }, 403);
+    return json({
+      signedIn: true,
+      setupRequired: data === true,
+      email: user.email,
+    });
+  } catch {
+    return unavailable();
+  }
+}
 export async function POST(request: Request) {
   if (!sameOrigin(request))
-    return Response.json({ error: "Invalid request origin" }, { status: 403 });
+    return json({ error: "Invalid request origin" }, 403);
   const parsed = z
     .object({
-      mode: z.enum(["signin", "signup", "signout", "recover", "update"]),
+      mode: z.enum(["signin", "first", "signout", "recover", "update"]),
       email: z.email().optional(),
       password: z.string().min(1).max(128).optional(),
-      code: z.string().optional(),
     })
+    .strict()
     .safeParse(await request.json().catch(() => null));
   if (!parsed.success)
-    return Response.json(
-      {
-        error: "Enter a valid email and a password of at least 12 characters.",
-      },
-      { status: 400 },
-    );
-  const client = await createClient(),
-    { mode, email, password } = parsed.data;
-  if (
-    (mode === "signup" || mode === "update") &&
-    (!password || password.length < 12)
-  )
-    return Response.json(
-      { error: "Use a password of at least 12 characters." },
-      { status: 400 },
-    );
-  let error;
-  if (mode === "signout") ({ error } = await client.auth.signOut());
-  else if (mode === "recover" && email)
-    ({ error } = await client.auth.resetPasswordForEmail(email, {
-      redirectTo: `${publicOrigin(request)}/auth/callback?next=/login?recovery=1`,
-    }));
-  else if (mode === "update" && password) {
-    const { data } = await client.auth.getUser();
-    if (!data.user)
-      return Response.json(
-        { error: "Recovery session expired. Request another recovery email." },
-        { status: 401 },
-      );
-    ({ error } = await client.auth.updateUser({ password }));
-  } else if (email && password) {
-    if (mode === "signup")
-      ({ error } = await client.auth.signUp({
+    return json({ error: "Check the email address and required fields." }, 400);
+  try {
+    const client = await createClient();
+    const { mode, password } = parsed.data;
+    const email = parsed.data.email?.trim().toLowerCase();
+    if (mode === "signout") {
+      const { error } = await client.auth.signOut();
+      return error
+        ? json({ error: "Sign-out failed. Please retry." }, 400)
+        : json({ ok: true });
+    }
+    if (mode === "first" || mode === "recover") {
+      if (email !== invitedOwnerEmail)
+        return json(
+          {
+            error:
+              "This workspace is invitation only. Use your invited Notara account.",
+          },
+          403,
+        );
+      const callback = new URL("/auth/callback", publicOrigin(request));
+      if (mode === "recover")
+        callback.searchParams.set("next", "/login?recovery=1");
+      const { error } = await client.auth.signInWithOtp({
         email,
-        password,
-        options: { emailRedirectTo: `${publicOrigin(request)}/auth/callback` },
-      }));
-    else
-      ({ error } = await client.auth.signInWithPassword({ email, password }));
-  } else
-    return Response.json(
-      { error: "Email and password required." },
-      { status: 400 },
-    );
-  if (error)
-    return Response.json(
-      {
-        error:
-          mode === "signin"
-            ? "Sign-in failed. Check your credentials and confirm your email."
-            : mode === "signup"
-              ? "Account creation failed. This workspace is invitation only; contact the owner."
-              : error.message,
-      },
-      { status: 400 },
-    );
-  return Response.json({ ok: true });
+        options: {
+          shouldCreateUser: mode === "first",
+          emailRedirectTo: callback.toString(),
+        },
+      });
+      if (error) {
+        if (error.status === 429 || error.code?.includes("rate_limit"))
+          return json(
+            {
+              error:
+                "Please wait a minute before requesting another sign-in email. Check your inbox and spam folder.",
+            },
+            429,
+          );
+        return json(
+          {
+            error:
+              "The sign-in email could not be sent. Please try again shortly. If it persists, email delivery needs attention.",
+          },
+          400,
+        );
+      }
+      return json({ ok: true, sent: true });
+    }
+    if (mode === "update") {
+      if (!password || password.length < 12)
+        return json(
+          { error: "Use a password of at least 12 characters." },
+          400,
+        );
+      const {
+        data: { user },
+      } = await client.auth.getUser();
+      if (!user)
+        return json(
+          { error: "Verify your email first. Request a new sign-in link." },
+          401,
+        );
+      const status = await client.rpc("account_setup_required");
+      if (status.error) return unavailable();
+      if (status.data === null)
+        return json({ error: "This account has not been invited." }, 403);
+      const { error } = await client.auth.updateUser({ password });
+      if (error)
+        return json(
+          {
+            error:
+              error.code === "same_password"
+                ? "Choose a different password."
+                : "Your password could not be saved. Use at least 12 characters and try again.",
+          },
+          400,
+        );
+      return json({ ok: true, next: "/" });
+    }
+    if (!email || !password)
+      return json(
+        {
+          error:
+            "Email and password are required. For first access, choose Set up my account.",
+        },
+        400,
+      );
+    const { error } = await client.auth.signInWithPassword({ email, password });
+    if (error)
+      return json(
+        {
+          error:
+            "Sign-in failed. If this is your first visit, choose Set up my account to verify your email and create your password.",
+        },
+        400,
+      );
+    const status = await client.rpc("account_setup_required");
+    if (status.error) return unavailable();
+    if (status.data === null) {
+      await client.auth.signOut();
+      return json({ error: "This account has not been invited." }, 403);
+    }
+    return json({
+      ok: true,
+      next: status.data === true ? "/login?setup=1" : "/",
+    });
+  } catch {
+    return unavailable();
+  }
 }
