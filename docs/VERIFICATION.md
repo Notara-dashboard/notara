@@ -1,38 +1,29 @@
-# NOTARA — visual foundation verification
+# Persistent workspace verification
 
-Verified locally on 17 October 2026, using Node 24 and the dependency versions pinned in the lockfile.
+18 October 2026 · Node 24 · Next.js 16.4.2 · Supabase project `nfhdvkinuywydpyoizyo`.
 
-## Automated checks
+## Completed checks
 
-- `npm run build`: passed; dashboard, 12 module pages and the not-found page prerender successfully.
-- `npm run typecheck`: passed with strict TypeScript.
-- `npm test`: 4 tests passed. Checks cover active-portfolio occupancy, gross debit/credit separation, navigation completeness, sample referential integrity and sample trend reconciliation.
-- All 13 application routes returned HTTP 200 and included the design-preview indicator.
-- Dependency installation/lockfile audit reported 0 known vulnerabilities at verification time. This is not a substitute for production security review.
+- Production build and strict TypeScript checks pass with the pinned dependency lockfile.
+- Thirteen domain/request/file-validation tests pass. They cover invalid dates, reversed event/lease ranges, negative rents, zero turnover versus missing turnover, signed credits, injected ownership fields, unique widget layouts, same-origin validation and file signatures/paths.
+- Database security suite passes in a rollback-only transaction: owner writes and reads, cross-owner read/update denial, foreign-key ownership checks, uninvited and anonymous denial, audit forgery/hard-delete denial, version conflict behavior, external-ID uniqueness, lease overlap, occupancy, oversight exclusion, financial separation and immutable finalisation.
+- End-to-end HTTP/storage suite passes 48 checks: authenticated record creation and changes across the implemented collections, archive/restore, stale-edit 409, overlapping-lease rejection, calendar, turnover coverage, financial totals, dashboard occupancy, preferences, audit, signed downloads, public-download denial, invalid file rejection, direct signed 5 MB upload and persistence after sign-out/re-entry.
+- Browser checks demonstrate sign-in, property creation, refresh persistence, editing, archival, restoration and mobile navigation. Phone and tablet checks show no page overflow; record tables scroll inside their containers. Calendar renders in SAST.
+- Signed-out requests to records, dashboard, documents and preferences return 401. Protected page visits take the browser to sign-in.
+- Dependency audit during installation reports no known vulnerabilities.
 
-## Browser evidence
+## Issues found and fixed
 
-The local application rendered successfully in the Codex browser. Responsive checks covered a 390 × 844 phone, 768 × 1024 tablet and 1440 × 1000 desktop. Phone and tablet document scroll widths matched their available client widths, with no horizontal page overflow. Desktop was checked visually. Screenshots of the dashboard were saved as separate handoff outputs.
+- Same-origin checks originally compared Next's internal hostname to the browser origin, rejecting legitimate `127.0.0.1` requests. Checks now validate protocol and actual Host; explicit cross-origin/missing-origin tests cover the fix.
+- Private uploads originally passed their entire body through the application server. The browser now uploads directly to private storage using a scoped signed token, then the server validates content before recording the document. A real 5 MB transfer verifies this path.
+- A missing composite lease foreign-key index was added after the performance advisor identified it.
+- Financial finalisation now requires a saved draft with balances, excludes archived balances, and rejects all later modifications to finalised records.
+- Phone filter controls were adjusted to keep fields within their containers.
 
-Verified interactions:
+## Limits and remaining launch gates
 
-- Created a sample action from the dashboard; open count changed from 4 to 5.
-- Completed that sample action; the Completed filter showed it and the open count returned to 4.
-- Archived it, selected the Archived filter, reloaded, and confirmed the archived record and last filter survived refresh.
-- Searched “Arrears” in the command palette and navigated to the financial module.
-- Selected Credit; the table showed Form & Function's R 4,500 credit while the gross debit KPI stayed R 66,250.
-- Opened Ask Notara, entered a sample question and received the explicit provider-not-connected response. No AI request is implemented.
-- Opened the phone's More navigation and confirmed all modules were present.
-- Hid recent communications with the dashboard customiser; its heading disappeared. Reset restored the layout.
-- Toggled daylight and midnight themes and checked rendering. Default remains midnight.
-- Reviewed browser warning/error logs on the final preview tab; no entries were returned at that check.
+These checks establish the implemented core flows, not 100% completion of the platform. Provider integrations, durable processing, imports, restoration, real-owner email delivery, complete accessibility coverage, independent preview/production environments, intended-domain deployment and operational recovery are not yet verified. See `BUILD-STATUS.md`.
 
-The sample test action is browser-local and archived; it is not part of repository fixture data.
+The latest Supabase security-advisor run warns that leaked-password protection is disabled. No RLS or exposed-function security warning is reported. The unused-index notices reflect the new database's low traffic and are not evidence of a functional fault.
 
-## Review and limits
-
-React review covered typed component props, hook placement, functional updates, event cleanup, versioned browser storage validation, lazy chart loading, no service secrets in clients, Radix dialog accessibility, named navigation controls, labelled forms, focus states and reduced-motion styles. The action form restricts tenant options to the selected sample property. Browser testing does not constitute a full WCAG audit or a cross-browser/device certification.
-
-The initial build exposed a package module-format mismatch; this was corrected to ESM and the final build passed. Development server restarts briefly invalidated a preview tab; the running application was reopened and verified. No unresolved compile/type errors remain.
-
-CSV downloads, local audio inspection, every individual record dialog and every sort/filter combination were implemented but not exhaustively tested in the browser. They require broader interaction tests before production use. No backend, auth, RLS policy, live integration, secure storage, transcription job, AI output, domain or Vercel deployment was implemented or verified in this milestone. The database document is a proposal only.
+Cleanup completed: all 14 application tables contain zero rows. Auth users, identities, sessions and refresh tokens are zero; the private bucket contains zero objects. Only the real owner's invitation remains. The temporary verification identity and its allowlist entry were deleted, and the temporary credential file was removed from disk.

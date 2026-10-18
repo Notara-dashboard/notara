@@ -1,5 +1,241 @@
 @import "tailwindcss";
 
+:root[data-theme="light"] .brief-card {
+  color: #edf0f7;
+}
+:root[data-theme="light"] .brief-card > p {
+  color: #c6cede;
+}
+:root[data-theme="light"] .brief-card .text-link {
+  color: #b8afff;
+}
+:root[data-theme="light"] .nav-item.active {
+  color: #4c3b99;
+  background: #e4defa;
+}
+
+.login-page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+.live-calendar {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  margin-top: 24px;
+}
+.live-calendar > strong {
+  padding: 8px;
+  color: var(--secondary);
+  font-size: 11px;
+}
+.live-calendar > button {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 75px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+  background: var(--surface);
+  text-align: left;
+}
+.live-calendar > button.selected {
+  border-color: var(--purple);
+  background: var(--panel-hover);
+}
+.live-calendar small {
+  color: var(--purple);
+}
+.live-selected-day {
+  margin-top: 24px;
+}
+@media (max-width: 600px) {
+  .live-calendar > button {
+    min-height: 54px;
+    padding: 6px;
+  }
+  .calendar-event-word {
+    display: none;
+  }
+}
+.login-card {
+  width: min(100%, 470px);
+  padding: 36px;
+}
+.login-card h1 {
+  font-size: 30px;
+  line-height: 1.2;
+  margin: 18px 0;
+}
+.login-card > p {
+  color: var(--secondary);
+  margin-bottom: 25px;
+}
+.live-panel {
+  padding: 24px;
+  margin-bottom: 20px;
+}
+.live-panel h2 {
+  margin: 0 0 16px;
+  font-size: 18px;
+}
+.live-records {
+  padding: 22px;
+}
+.live-toolbar {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+  padding: 18px 0;
+  flex-wrap: wrap;
+}
+.live-toolbar label {
+  display: grid;
+  gap: 6px;
+  min-width: 120px;
+  flex: 1;
+}
+.live-toolbar input,
+.live-toolbar select {
+  width: 100%;
+  min-width: 0;
+}
+.live-records > .card-heading {
+  padding: 0;
+}
+.relation-field {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+.relation-field label {
+  display: block;
+}
+.live-tabs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  text-transform: capitalize;
+}
+.live-summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+.live-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 18px 0 0;
+}
+.live-pagination > span {
+  margin-right: auto;
+  color: var(--secondary);
+}
+.record-notes {
+  display: block;
+  color: var(--secondary);
+  font-weight: 400;
+  max-width: 320px;
+  overflow-wrap: anywhere;
+}
+.row-buttons {
+  display: flex;
+  gap: 4px;
+}
+.table-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+}
+.table-scroll table {
+  min-width: 600px;
+  width: 100%;
+  border-collapse: collapse;
+}
+.table-scroll th,
+.table-scroll td {
+  text-align: left;
+  padding: 14px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.table-scroll th {
+  color: var(--secondary);
+  font-weight: 500;
+}
+.record-form label {
+  min-width: 0;
+}
+.record-form small {
+  color: var(--secondary);
+  font-size: 11px;
+}
+.live-records .card-heading {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.sidebar > .brand {
+  margin: 0 10px 26px;
+}
+.sidebar nav {
+  overflow-y: auto;
+}
+.sidebar-bottom {
+  margin-top: auto;
+  padding-bottom: 20px;
+  overflow-wrap: anywhere;
+}
+.stats-grid .stat-card {
+  min-height: 140px;
+}
+.stat-card > small {
+  color: var(--secondary);
+}
+.dialog-content {
+  max-height: 90dvh;
+  overflow-y: auto;
+}
+@media (max-width: 767px) {
+  .live-records,
+  .live-panel {
+    padding: 16px;
+  }
+  .login-card {
+    padding: 24px;
+  }
+  .topbar time {
+    display: none;
+  }
+  .live-toolbar {
+    gap: 8px;
+  }
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  .live-pagination {
+    flex-wrap: wrap;
+  }
+  .live-tabs .button {
+    min-height: 44px;
+  }
+  .table-scroll {
+    width: 100%;
+  }
+  .page-content {
+    min-width: 0;
+  }
+  .main-shell {
+    min-width: 0;
+  }
+}
+
 .skip-link {
   position: fixed;
   top: -60px;

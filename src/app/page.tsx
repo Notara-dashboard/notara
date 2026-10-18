@@ -1,4 +1,9 @@
 import { Dashboard } from "@/components/dashboard";
+import { ProtectedWorkspace } from "@/components/protected-workspace";
 export default function Page() {
-  return <Dashboard />;
+  return (
+    <ProtectedWorkspace>
+      <Dashboard />
+    </ProtectedWorkspace>
+  );
 }
