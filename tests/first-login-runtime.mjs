@@ -20,14 +20,14 @@ async function req(path, body, status = 200) {
       i = p.indexOf("=");
     jar.set(p.slice(0, i), p.slice(i + 1));
   }
-  assert.equal(
+  const accepted = (Array.isArray(status) ? status : [status]).includes(
     response.status,
-    status,
+  );
+  assert.ok(
+    accepted,
     path +
       ": " +
-      (response.status === status
-        ? ""
-        : (await response.clone().text()).slice(0, 300)),
+      (accepted ? "" : (await response.clone().text()).slice(0, 300)),
   );
   checks++;
   return response;
@@ -52,9 +52,11 @@ checks++;
 let status = await (await req("/api/auth")).json();
 assert.equal(status.setupRequired, true);
 checks++;
-const gate = await req("/");
+const gate = await req("/", undefined, [200, 307]);
 const gateHtml = await gate.text();
-assert.ok(gateHtml.includes("/login?setup=1"));
+assert.ok(
+  (gate.headers.get("location") || gateHtml).includes("/login?setup=1"),
+);
 assert.ok(!gateHtml.includes("YOUR DAILY OVERVIEW"));
 checks++;
 await req("/api/auth", { mode: "update", password: "short" }, 400);

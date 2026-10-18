@@ -35,7 +35,7 @@ Google and AI accounts remain disconnected. No provider authorisation or real mo
 
 Supabase: `nfhdvkinuywydpyoizyo`, Notara-dashboard, Postgres 17, Free plan. Only publishable credentials are used. No service-role key or database password is committed.
 
-Vercel: project `notara` (`prj_lzjhwi87pfZy1kmE5fa5baqXiTaT`) under `mjwdashboard`. Preview and production releases are protected by Vercel Authentication. Production uses the connected Supabase project with publishable credentials. Custom-domain routing is not provisioned.
+Vercel: primary project `mjw-notara/notara` serves https://notara-coral.vercel.app and deploys GitHub main automatically. Its missing Supabase URL and publishable key were configured for Production, Preview and Development through the owner's authenticated dashboard, then production was rebuilt. The alternate project `notara` (`prj_lzjhwi87pfZy1kmE5fa5baqXiTaT`) under `mjwdashboard` remains protected by Vercel Authentication. Both use the connected Supabase project. Custom-domain routing is not provisioned.
 
 GitHub: PR #1 contains the workspace release for merging into `main`. Local Git credentials belong to a different account; publication uses the connected Notara account without replacing global credentials.
 
@@ -50,5 +50,5 @@ All eleven Supabase migrations are applied remotely. Repository filenames match 
 
 ## First-login correction
 
-The owner starts with an emailed one-time sign-in link, verifies their address, then chooses and confirms a password before accessing workspace data. A private database marker records a real password change after email confirmation; Supabase-generated temporary passwords do not satisfy this requirement. Subsequent visits support normal password sign-in and email recovery. Empty or non-JSON authentication failures produce a helpful message rather than a parsing error. Supabase Site URL and callback allowlist now point to the production deployment. The screenshot URL notara-coral.vercel.app is outside the connected Vercel project's deployment aliases and returned HTTP 500; use https://notara-mjwdashboard.vercel.app/login.
+The owner starts with an emailed one-time sign-in link, verifies their address, then chooses and confirms a password before accessing workspace data. A private database marker records a real password change after email confirmation; Supabase-generated temporary passwords do not satisfy this requirement. Subsequent visits support normal password sign-in and email recovery. Empty or non-JSON authentication failures produce a helpful message rather than a parsing error. The original notara-coral.vercel.app deployment was missing both Supabase environment variables. Those settings are now saved and the original address is rebuilt and verified. Supabase Site URL is https://notara-coral.vercel.app, with its callback allowed alongside the alternate deployment and local development. Use https://notara-coral.vercel.app/login.
 

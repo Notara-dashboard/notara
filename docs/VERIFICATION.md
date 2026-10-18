@@ -42,3 +42,5 @@ Cleanup completed: all 19 application tables contain zero rows. Auth users, iden
 
 Nineteen automated tests, three rollback-only SQL suites and 23 live first-login HTTP checks pass. The new checks cover a verified email session, generated temporary password handling, mandatory password setup, denial of data access before completion, a real password update through Supabase Auth, later password sign-in, sign-out and one-time link replay rejection. The disposable Auth fixture is removed after testing. Production email receipt and password entry belong to the owner; their password is never created by the agent.
 
+The same 23 first-login HTTP checks also pass against https://notara-coral.vercel.app after configuring its missing environment variables and rebuilding production. This verifies the original public deployment through Auth, password setup, RLS, HTTPS cookies and subsequent password sign-in. Supabase Site URL and callback permissions were verified in the owner's authenticated dashboard. No real-owner password was chosen or inspected.
+
