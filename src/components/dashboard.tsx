@@ -7,6 +7,7 @@ import { Dialog } from "./ui/dialog";
 import { useWorkspace } from "./workspace";
 import { api } from "./record-list";
 import { money } from "@/lib/domain";
+import { DailyCapture } from "./daily-capture";
 type Summary = {
   properties: number;
   premises: number;
@@ -147,8 +148,8 @@ export function Dashboard() {
                 : "—"}
             </strong>
             <p>
-              Occupied · {data?.occupied ?? 0} of {data?.premises ?? 0} active
-              premises
+              Lease coverage · {data?.occupied ?? 0} of {data?.premises ?? 0}{" "}
+              recorded premises
             </p>
           </div>
           <div>
@@ -159,7 +160,8 @@ export function Dashboard() {
           </div>
         </div>
         <p className="muted-note">
-          Occupancy comes from current leases. Financials use the latest
+          Lease coverage reflects recorded current leases. Missing or incomplete
+          schedules do not establish actual vacancy. Financials use the latest
           finalised snapshot for active properties.
         </p>
       </section>
@@ -211,6 +213,7 @@ export function Dashboard() {
         </div>
       ) : (
         <div className="dashboard-widgets">
+          <DailyCapture />
           {preferences.widgets
             .filter((w) => !preferences.hidden.includes(w))
             .map((w) => (

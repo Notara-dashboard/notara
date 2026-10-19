@@ -1,6 +1,9 @@
 import { z } from "zod";
 export const backupTables = [
   "properties",
+  "general_notes",
+  "security_reports",
+  "references",
   "premises",
   "tenants",
   "contacts",
@@ -27,9 +30,20 @@ export const backupSchema = z
     version: z.literal(1),
     created_at: z.iso.datetime(),
     owner_id: z.uuid(),
-    tables: z.record(
-      z.enum(backupTables),
-      z.array(z.record(z.string(), z.unknown())).max(10000),
+    tables: z.preprocess(
+      (value) =>
+        value && typeof value === "object" && !Array.isArray(value)
+          ? {
+              general_notes: [],
+              security_reports: [],
+              references: [],
+              ...value,
+            }
+          : value,
+      z.record(
+        z.enum(backupTables),
+        z.array(z.record(z.string(), z.unknown())).max(10000),
+      ),
     ),
     files: z
       .array(

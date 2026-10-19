@@ -92,6 +92,11 @@ test("backup validates file completeness, owner isolation and integrity digest",
     ],
   });
   assert.doesNotThrow(() => validateBackupPaths(backup));
+  const legacy = structuredClone(backup);
+  delete legacy.tables.general_notes;
+  delete legacy.tables.security_reports;
+  delete legacy.tables.references;
+  assert.deepEqual(backupSchema.parse(legacy).tables.general_notes, []);
   assert.throws(() => validateBackupPaths({ ...backup, files: [] }));
   assert.throws(() =>
     validateBackupPaths({

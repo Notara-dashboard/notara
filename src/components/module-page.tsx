@@ -10,6 +10,7 @@ import { AuditHistory } from "./audit-history";
 import { Calendar } from "./calendar";
 import { Imports } from "./imports";
 import { BackupControls } from "./backup";
+import { definitions } from "@/lib/domain";
 const collections: Partial<Record<ModuleId, string[]>> = {
   properties: ["properties", "premises"],
   tenants: ["tenants", "contacts"],
@@ -19,6 +20,8 @@ const collections: Partial<Record<ModuleId, string[]>> = {
   financials: ["arrears_snapshots", "arrears_balances"],
   turnover: ["turnover_requirements", "turnover_submissions"],
   meetings: ["meetings"],
+  notes: ["general_notes"],
+  security: ["security_reports"],
   communications: ["communications"],
 };
 export function ModulePage({ moduleId }: { moduleId: ModuleId }) {
@@ -63,6 +66,7 @@ export function ModulePage({ moduleId }: { moduleId: ModuleId }) {
           connected later.
         </p>
       )}
+      {moduleId === "documents" && <RecordList table="references" />}
       {collections[moduleId] ? (
         <CollectionTabs
           key={moduleId}
@@ -111,7 +115,7 @@ function CollectionTabs({
             variant={active === t ? "default" : "outline"}
             onClick={() => setActive(t)}
           >
-            {t.replaceAll("_", " ")}
+            {definitions[t]?.label || t.replaceAll("_", " ")}
           </Button>
         ))}
       </div>

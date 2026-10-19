@@ -48,6 +48,9 @@ export async function GET(
       query = query.eq(field.key, value);
   }
   const property = url.searchParams.get("property");
+  const recordId = url.searchParams.get("id");
+  if (recordId && z.uuid().safeParse(recordId).success)
+    query = query.eq("id", recordId);
   if (
     property &&
     z.uuid().safeParse(property).success &&
@@ -95,7 +98,7 @@ export async function GET(
         _labels: Object.fromEntries(
           Object.entries(labels).map(([key, map]) => [
             key,
-            map[row[key]] || "Unavailable record",
+            row[key] ? map[row[key]] || "Unavailable record" : "",
           ]),
         ),
       })),

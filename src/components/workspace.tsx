@@ -39,6 +39,8 @@ export const moduleIcons = {
   actions: ListTodo,
   calendar: CalendarDays,
   meetings: AudioLines,
+  notes: FileText,
+  security: Building2,
   communications: Mail,
   turnover: ChartNoAxesCombined,
   financials: Wallet,
