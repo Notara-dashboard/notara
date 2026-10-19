@@ -4,6 +4,9 @@ import { Button } from "./ui/button";
 import { Dialog } from "./ui/dialog";
 import { api, RelationField } from "./record-list";
 import { maxUploadBytes, uploadTypes } from "@/lib/uploads";
+import { CollectionImport } from "./collection-import";
+import { exportCSV } from "./shared";
+import { definitions } from "@/lib/domain";
 type Document = {
   id: string;
   name: string;
@@ -58,6 +61,53 @@ export function Documents() {
   return (
     <section className="panel live-panel">
       <h2>Your private documents</h2>
+      <div className="live-toolbar">
+        <CollectionImport
+          table="documents"
+          onChanged={() => setRev((v) => v + 1)}
+        />
+        <Button
+          variant="outline"
+          disabled={busy}
+          onClick={async () => {
+            setBusy(true);
+            setError("");
+            try {
+              const all: Record<string, unknown>[] = [];
+              for (let p = 0; ; p++) {
+                const result = await api(
+                  `/api/records/documents?page=${p}&archived=${archived ? "1" : "0"}`,
+                );
+                all.push(...result.data);
+                if (!result.data.length || all.length >= result.count) break;
+              }
+              const fields = definitions.documents.fields;
+              exportCSV("documents", [
+                ["id", "version", ...fields.map((f) => f.key)],
+                ...all.map((r) => [
+                  r.id,
+                  r.version,
+                  ...fields.map((f) => r[f.key]),
+                ]),
+              ]);
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Export failed");
+            } finally {
+              setBusy(false);
+            }
+          }}
+        >
+          Export metadata
+        </Button>
+        <a
+          className="text-link"
+          href={`/print/documents?archived=${archived ? "1" : "0"}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Print / Save PDF
+        </a>
+      </div>
       <p className="muted-note">
         PDF, JPEG, PNG, text and CSV · Up to 20 MB. Previous versions remain
         private. Files are downloaded as attachments and should be treated as

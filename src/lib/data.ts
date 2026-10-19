@@ -5,6 +5,8 @@ export type ModuleId =
   | "actions"
   | "calendar"
   | "meetings"
+  | "notes"
+  | "security"
   | "communications"
   | "turnover"
   | "financials"
@@ -53,6 +55,21 @@ export const modules: {
     short: "Communications",
     group: "WORKSPACE",
     description: "The conversations behind your portfolio.",
+  },
+  {
+    id: "notes",
+    label: "General Notes",
+    short: "Notes",
+    group: "WORKSPACE",
+    description:
+      "Capture observations, decisions and useful context by building.",
+  },
+  {
+    id: "security",
+    label: "Weekly Security Reports",
+    short: "Security",
+    group: "PORTFOLIO",
+    description: "Keep dated site reports, incidents and follow-up together.",
   },
   {
     id: "properties",

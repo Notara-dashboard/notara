@@ -49,7 +49,7 @@ export function PortfolioInsights({
       <div className="card-heading">
         <h2>
           {kind === "leases"
-            ? "Current vacancies"
+            ? "Premises without a recorded current lease"
             : kind === "turnover"
               ? "Monthly reporting coverage"
               : "Finalised financial history"}
@@ -76,7 +76,10 @@ export function PortfolioInsights({
         <p role="status">Loading summary…</p>
       ) : kind === "leases" ? (
         <>
-          <p>{data.vacancy_count} vacant premises in the active portfolio.</p>
+          <p>
+            {data.vacancy_count} premises have no recorded current lease.
+            Confirm vacancy against your latest tenancy schedule before acting.
+          </p>
           {data.vacancies.map((v) => (
             <div key={v.id} className="live-summary-row">
               <strong>{v.name}</strong>

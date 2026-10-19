@@ -130,7 +130,7 @@ test("preferences enforce a unique complete widget layout", () => {
     false,
   );
 });
-test("all thirteen areas remain available and dates are SAST business dates", () => {
-  assert.equal(new Set(modules.map((m) => m.id)).size, 13);
+test("all workspace areas remain available and dates are SAST business dates", () => {
+  assert.equal(new Set(modules.map((m) => m.id)).size, modules.length);
   assert.match(today(), /^\d{4}-\d{2}-\d{2}$/);
 });

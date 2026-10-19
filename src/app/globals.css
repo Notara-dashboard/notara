@@ -5172,3 +5172,42 @@ td > small {
     scroll-behavior: auto !important;
   }
 }
+.record-detail dd {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 6px 0 20px;
+}
+.record-detail dt {
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .sidebar,
+  .topbar,
+  .mobile-nav,
+  .live-toolbar,
+  .dialog-overlay,
+  .toast,
+  .customise-row {
+    display: none !important;
+  }
+  .workspace-main,
+  .main-content,
+  .main-shell {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .panel,
+  .stat-card,
+  .brief-card {
+    box-shadow: none !important;
+    border: 1px solid #ccc;
+    background: white !important;
+    color: black !important;
+    break-inside: avoid;
+  }
+}

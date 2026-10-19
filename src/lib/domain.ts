@@ -32,6 +32,63 @@ const date = (key: string, label: string, required = true): Field => ({
   type: "date",
 });
 export const definitions: Record<string, Definition> = {
+  documents: {
+    label: "Document metadata",
+    singular: "document",
+    fields: [
+      name,
+      relation("property_id", "Property", "properties"),
+      relation("tenant_id", "Tenant", "tenants"),
+      relation("lease_id", "Lease", "leases"),
+      relation("meeting_id", "Meeting", "meetings"),
+      notes,
+    ],
+  },
+  general_notes: {
+    label: "General notes",
+    singular: "note",
+    fields: [
+      name,
+      relation("property_id", "Property", "properties"),
+      date("note_date", "Note date"),
+      { key: "topic", label: "Topic" },
+      notes,
+      { key: "source_url", label: "Source link" },
+    ],
+  },
+  security_reports: {
+    label: "Weekly security reports",
+    singular: "security report",
+    fields: [
+      name,
+      relation("property_id", "Property", "properties", true),
+      date("start_date", "Week starts"),
+      date("end_date", "Week ends"),
+      {
+        key: "status",
+        label: "Status",
+        type: "select",
+        options: ["draft", "review", "finalised"],
+        required: true,
+      },
+      { key: "prepared_by", label: "Prepared by" },
+      { key: "findings", label: "Incidents and findings", type: "textarea" },
+      { key: "follow_up", label: "Follow-up and closure", type: "textarea" },
+      notes,
+      { key: "source_url", label: "Source link" },
+    ],
+  },
+  references: {
+    label: "Source library",
+    singular: "source",
+    fields: [
+      name,
+      relation("property_id", "Property", "properties"),
+      { key: "source_url", label: "Source link", required: true },
+      date("source_date", "Source date", false),
+      notes,
+    ],
+  },
   properties: {
     label: "Properties",
     singular: "property",
@@ -283,7 +340,12 @@ export function recordSchema(table: string) {
   const shape: Record<string, z.ZodType> = {};
   for (const field of def.fields) {
     let schema: z.ZodType;
-    if (field.relation) schema = z.uuid().nullable();
+    if (field.key === "source_url")
+      schema = z.union([
+        z.url({ protocol: /^https?$/ }).max(500),
+        z.literal(""),
+      ]);
+    else if (field.relation) schema = z.uuid().nullable();
     else if (field.type === "number")
       schema = z
         .number()
@@ -305,7 +367,7 @@ export function recordSchema(table: string) {
         .string()
         .trim()
         .max(
-          field.type === "textarea" ? 5000 : field.key === "name" ? 160 : 500,
+          field.type === "textarea" ? 30000 : field.key === "name" ? 160 : 500,
         );
     if (field.required)
       schema = schema.refine(

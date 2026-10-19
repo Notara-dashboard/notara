@@ -15,10 +15,13 @@ import { Button } from "./ui/button";
 import { Dialog } from "./ui/dialog";
 import { exportCSV } from "./shared";
 import { useWorkspace } from "./workspace";
+import { CollectionImport } from "./collection-import";
 
 export async function api(url: string, options?: RequestInit) {
   const response = await fetch(url, options);
-  const body = await response.json();
+  const body = await response.json().catch(() => ({
+    error: "The server could not complete this request. Please retry.",
+  }));
   if (!response.ok) {
     if (response.status === 401)
       throw new Error("Your session has expired. Sign in again.");
@@ -74,6 +77,7 @@ export function RelationField({
         placeholder="Search linked records…"
       />
       <select
+        aria-label={field.label}
         id={`relation-${field.key}`}
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -192,7 +196,7 @@ function RecordForm({
                 <textarea
                   rows={3}
                   value={values[field.key]}
-                  maxLength={5000}
+                  maxLength={30000}
                   onChange={(e) =>
                     setValues((v) => ({ ...v, [field.key]: e.target.value }))
                   }
@@ -280,11 +284,13 @@ export function RecordList({
   const [sort, setSort] = useState("newest"),
     [filters, setFilters] = useState<Record<string, string>>({}),
     [exporting, setExporting] = useState(false);
+  const [property, setProperty] = useState(""),
+    [viewing, setViewing] = useState<RecordRow | null>(null);
   const def = definitions[table];
   const columns = def.fields
     .filter((f) => f.key !== "name" && f.key !== "notes")
     .slice(0, 4);
-  const queryString = `archived=${archived ? "1" : "0"}&q=${encodeURIComponent(query)}&sort=${sort}&${new URLSearchParams(Object.fromEntries(Object.entries(filters).map(([k, v]) => ["filter-" + k, v])))}`;
+  const queryString = `archived=${archived ? "1" : "0"}&q=${encodeURIComponent(query)}&sort=${sort}&property=${property}&${new URLSearchParams(Object.fromEntries(Object.entries(filters).map(([k, v]) => ["filter-" + k, v])))}`;
   useEffect(() => {
     setArchived(preferences.filters[table] === "archived");
   }, [preferences.filters, table]);
@@ -348,6 +354,33 @@ export function RecordList({
         </Button>
       </div>
       <div className="live-toolbar">
+        <CollectionImport table={table} onChanged={reload} />
+        <a
+          className="text-link"
+          target="_blank"
+          rel="noopener noreferrer"
+          href={`/print/${table}?${queryString}`}
+        >
+          Print / Save PDF
+        </a>
+        {def.fields.some((f) => f.key === "property_id") && (
+          <label>
+            Building
+            <RelationField
+              field={{
+                key: "building-filter",
+                label: "Building",
+                relation: "properties",
+              }}
+              value={property}
+              propertyId=""
+              onChange={(id) => {
+                setProperty(id);
+                setPage(0);
+              }}
+            />
+          </label>
+        )}
         <label>
           Search
           <input
@@ -434,14 +467,25 @@ export function RecordList({
                   break;
               }
               exportCSV(table, [
-                [...def.fields.map((f) => f.label)],
-                ...all.map((r) =>
-                  def.fields.map((f) =>
-                    f.relation
-                      ? (r._labels as Record<string, string>)?.[f.key] || ""
-                      : r[f.key],
-                  ),
-                ),
+                [
+                  "id",
+                  "version",
+                  ...def.fields.map((f) => f.key),
+                  ...def.fields
+                    .filter((f) => f.relation)
+                    .map((f) => f.key + "_label"),
+                ],
+                ...all.map((r) => [
+                  r.id,
+                  r.version,
+                  ...def.fields.map((f) => r[f.key]),
+                  ...def.fields
+                    .filter((f) => f.relation)
+                    .map(
+                      (f) =>
+                        (r._labels as Record<string, string>)?.[f.key] || "",
+                    ),
+                ]),
               ]);
             } catch (e) {
               setError(e instanceof Error ? e.message : "Export failed");
@@ -500,7 +544,7 @@ export function RecordList({
                   <td>
                     <button
                       className="text-link"
-                      onClick={() => setEditing(row)}
+                      onClick={() => setViewing(row)}
                     >
                       {row.name}
                     </button>
@@ -576,6 +620,65 @@ export function RecordList({
           <ChevronRight size={18} />
         </Button>
       </div>
+      <Dialog
+        open={!!viewing}
+        onOpenChange={(open) => {
+          if (!open) setViewing(null);
+        }}
+        title={viewing?.name || "Record"}
+        wide
+      >
+        {viewing && (
+          <>
+            <dl className="record-detail">
+              {def.fields
+                .filter((f) => f.key !== "name")
+                .map((f) => (
+                  <div key={f.key}>
+                    <dt>{f.label}</dt>
+                    <dd>
+                      {f.key === "source_url" &&
+                      /^https?:\/\//.test(String(viewing[f.key])) ? (
+                        <a
+                          className="text-link"
+                          href={String(viewing[f.key])}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Open source document →
+                        </a>
+                      ) : (
+                        String(
+                          (f.relation
+                            ? (viewing._labels as Record<string, string>)?.[
+                                f.key
+                              ]
+                            : viewing[f.key]) ?? "—",
+                        )
+                      )}
+                    </dd>
+                  </div>
+                ))}
+            </dl>
+            <a
+              className="text-link"
+              href={`/print/${table}?id=${viewing.id}&archived=${viewing.archived_at ? "1" : "0"}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Print this record / Save PDF
+            </a>
+            <Button
+              onClick={() => {
+                setEditing(viewing);
+                setViewing(null);
+              }}
+            >
+              Edit record
+            </Button>
+          </>
+        )}
+      </Dialog>
       <Dialog
         open={editing !== undefined}
         onOpenChange={(value) => {
