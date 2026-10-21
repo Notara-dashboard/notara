@@ -4,6 +4,7 @@ import { zipSync, unzipSync, strToU8, strFromU8 } from "fflate";
 import {
   backupSchema,
   maxBackupBytes,
+  maxBackupRecordBytes,
   sha256,
   validateBackupPaths,
 } from "@/lib/backup";
@@ -29,7 +30,7 @@ export function BackupControls() {
         workspace.
       </p>
       <p className="muted-note">
-        Up to 100 MB of files and 3 MB of records per backup. Previous audit
+        Up to 100 MB of files and 4 MB of records per backup. Previous audit
         history is included for reference; recovery creates fresh audit entries.
       </p>
       <Button
@@ -85,7 +86,7 @@ export function BackupControls() {
               files,
             });
             objects["manifest.json"] = strToU8(JSON.stringify(manifest));
-            if (objects["manifest.json"].length > 3 * 1024 * 1024)
+            if (objects["manifest.json"].length > maxBackupRecordBytes)
               throw new Error(
                 "Backup metadata exceeds the self-service restore limit. Contact support for a managed backup.",
               );
@@ -138,7 +139,7 @@ export function BackupControls() {
                     size += entry.originalSize;
                     count++;
                     if (
-                      size > maxBackupBytes + 3 * 1024 * 1024 ||
+                      size > maxBackupBytes + maxBackupRecordBytes ||
                       entry.originalSize > maxBackupBytes ||
                       count > 2001
                     )
@@ -151,7 +152,7 @@ export function BackupControls() {
               );
               if (
                 !files["manifest.json"] ||
-                files["manifest.json"].length > 3 * 1024 * 1024
+                files["manifest.json"].length > maxBackupRecordBytes
               )
                 throw new Error("Backup manifest is missing or too large.");
               const manifest = backupSchema.parse(
