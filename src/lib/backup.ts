@@ -24,6 +24,8 @@ export const backupTables = [
   "audit_events",
 ] as const;
 export const maxBackupBytes = 100 * 1024 * 1024;
+// Keep record transfers below the hosting platform's request/response ceiling.
+export const maxBackupRecordBytes = 4 * 1024 * 1024;
 export const backupSchema = z
   .object({
     format: z.literal("notara-backup"),

@@ -5,6 +5,7 @@ import {
   backupSchema,
   validateBackupPaths,
   sha256,
+  maxBackupRecordBytes,
 } from "@/lib/backup";
 import { validFile } from "@/lib/uploads";
 import { preferenceSchema } from "@/lib/domain";
@@ -21,7 +22,10 @@ export async function GET(request: Request) {
         { error: "Snapshot backup unavailable." },
         { status: 500 },
       );
-    if (new TextEncoder().encode(JSON.stringify(data)).length > 3 * 1024 * 1024)
+    if (
+      new TextEncoder().encode(JSON.stringify(data)).length >
+      maxBackupRecordBytes
+    )
       return Response.json(
         { error: "This workspace requires a managed backup." },
         { status: 413 },
@@ -91,11 +95,11 @@ export async function POST(request: Request) {
   if (!auth)
     return Response.json({ error: "Please sign in again." }, { status: 401 });
   const raw = await request.text();
-  if (new TextEncoder().encode(raw).length > 3 * 1024 * 1024)
+  if (new TextEncoder().encode(raw).length > maxBackupRecordBytes)
     return Response.json(
       {
         error:
-          "Backup metadata exceeds 3 MB. Contact support for a managed restore.",
+          "Backup metadata exceeds 4 MB. Contact support for a managed restore.",
       },
       { status: 413 },
     );
